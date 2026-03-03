@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordWatch — Language Learning Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --border: #2a2a30;
+    --accent: #e8ff47;
+    --accent2: #47c8ff;
+    --text: #f0f0f0;
+    --muted: #666;
+    --danger: #ff4747;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+    background-image: radial-gradient(ellipse at 20% 10%, rgba(232,255,71,0.04) 0%, transparent 50%),
+                      radial-gradient(ellipse at 80% 80%, rgba(71,200,255,0.05) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--muted);
+    margin-top: 10px;
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  .main-card {
+    width: 100%;
+    max-width: 700px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* MIC SECTION */
+  .mic-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mic-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(232,255,71,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .mic-btn {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 32px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mic-btn:hover { border-color: var(--accent); transform: scale(1.05); }
+
+  .mic-btn.listening {
+    border-color: var(--danger);
+    background: rgba(255,71,71,0.1);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,71,71,0.4); }
+    50% { box-shadow: 0 0 0 16px rgba(255,71,71,0); }
+  }
+
+  .status-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .status-text.active { color: var(--danger); }
+
+  .transcript-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 16px;
+    color: var(--muted);
+    min-height: 60px;
+    line-height: 1.6;
+    font-style: italic;
+    text-align: left;
+    transition: border-color 0.2s;
+  }
+
+  .transcript-box.has-text { color: var(--text); font-style: normal; border-color: rgba(232,255,71,0.2); }
+
+  /* CONTROLS ROW */
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+
+  .btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* STATS BAR */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-pill {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* WORD LIST */
+  .word-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .word-list-header h2 {
+    font-size: 14px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .sort-btns { display: flex; gap: 6px; }
+
+  .sort-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .sort-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  .word-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .word-grid::-webkit-scrollbar { width: 4px; }
+  .word-grid::-webkit-scrollbar-track { background: var(--bg); }
+  .word-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .word-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    animation: slideIn 0.3s ease;
+    transition: border-color 0.2s;
+    cursor: default;
+  }
+
+  .word-item:hover { border-color: rgba(255,255,255,0.15); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .word-rank {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    width: 20px;
+    flex-shrink: 0;
+  }
+
+  .word-text {
+    font-size: 18px;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .word-bar-wrap {
+    flex: 2;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .word-bar {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.5s ease;
+  }
+
+  .word-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .word-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(255,71,71,0.15);
+    color: #ff8080;
+    font-family: 'Space Mono', monospace;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* HIGHLIGHT in transcript */
+  .flash {
+    animation: flashBg 0.5s ease;
+  }
+
+  @keyframes flashBg {
+    0% { border-color: var(--accent); background: rgba(232,255,71,0.05); }
+    100% { border-color: rgba(232,255,71,0.2); background: var(--bg); }
+  }
+
+  .no-support {
+    background: rgba(255,71,71,0.1);
+    border: 1px solid rgba(255,71,71,0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    color: #ff8080;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* Manual input */
+  .manual-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .manual-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .manual-row { display: flex; gap: 8px; }
+
+  .manual-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .manual-input:focus { border-color: var(--accent); }
+  .manual-input::placeholder { color: var(--muted); }
+
+  .add-btn {
+    padding: 12px 20px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    text-transform: uppercase;
+  }
+
+  .add-btn:hover { opacity: 0.85; }
+  .add-btn:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎯 Language Tool</div>
+  <h1>Word<span>Watch</span></h1>
+  <p class="subtitle">Track words you say — spot patterns, build fluency</p>
+</header>
+
+<div class="main-card">
+
+  <div class="no-support" id="noSupport">
+    ⚠ Speech recognition not supported in this browser. Use the text input below instead. Try Chrome for full mic support.
+  </div>
+
+  <!-- MIC SECTION -->
+  <div class="mic-section">
+    <button class="mic-btn" id="micBtn" title="Click to start/stop listening">🎙️</button>
+    <div class="status-text" id="statusText">Click mic to start listening</div>
+    <div class="transcript-box" id="transcriptBox">Your speech will appear here...</div>
+  </div>
+
+  <!-- MANUAL INPUT -->
+  <div class="manual-section">
+    <span class="manual-label">✏️ Or type / paste text manually</span>
+    <div class="manual-row">
+      <input class="manual-input" id="manualInput" placeholder="Type a sentence or paste text here..." />
+      <button class="add-btn" id="addBtn">Add</button>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="btn" id="exportBtn">⬇ Export CSV</button>
+    <button class="btn danger" id="clearBtn">✕ Clear All</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-pill">
+      <span class="stat-num" id="totalWords">0</span>
+      <span class="stat-label">Total Words</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-num" id="uniqueWords">0</span>
+      <span class="stat-label">Unique Words</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-num" id="topWord">—</span>
+      <span class="stat-label">Most Used</span>
+    </div>
+  </div>
+
+  <!-- WORD LIST -->
+  <div class="word-list-header">
+    <h2>Word Frequency</h2>
+    <div class="sort-btns">
+      <button class="sort-btn active" id="sortFreq">Freq</button>
+      <button class="sort-btn" id="sortAZ">A–Z</button>
+    </div>
+  </div>
+
+  <div class="word-grid" id="wordGrid">
+    <div class="empty-state">
+      <div class="emoji">🗣️</div>
+      <p>Start speaking or type something to track your words</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ─── STATE ───
+  const STOP_WORDS = new Set([
+    'a','an','the','is','it','in','on','at','to','for','of','and','or','but',
+    'so','yet','nor','as','if','by','up','do','my','we','he','she','they',
+    'you','i','me','him','her','us','them','be','am','are','was','were',
+    'been','being','have','has','had','will','would','could','should','may',
+    'might','must','shall','can','this','that','these','those','with','from',
+    'not','no','yes','its','it\'s','i\'m','i\'ve','i\'ll','don\'t','doesn\'t',
+    'didn\'t','isn\'t','aren\'t','wasn\'t','weren\'t','can\'t','won\'t'
+  ]);
+
+  let wordCounts = {};
+  let sortMode = 'freq';
+  let recognition = null;
+  let isListening = false;
+
+  // ─── SPEECH RECOGNITION ───
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    document.getElementById('noSupport').style.display = 'block';
+    document.getElementById('micBtn').style.opacity = '0.3';
+    document.getElementById('micBtn').style.pointerEvents = 'none';
+  } else {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    let finalTranscript = '';
+
+    recognition.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          const text = e.results[i][0].transcript;
+          finalTranscript += text + ' ';
+          processWords(text);
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      const box = document.getElementById('transcriptBox');
+      box.textContent = finalTranscript + interim;
+      box.classList.add('has-text');
+      box.classList.remove('flash');
+      void box.offsetWidth;
+      box.classList.add('flash');
+    };
+
+    recognition.onerror = (e) => {
+      setStatus('Error: ' + e.error, false);
+      stopListening();
+    };
+
+    recognition.onend = () => {
+      if (isListening) recognition.start(); // keep alive
+    };
+  }
+
+  function startListening() {
+    if (!recognition) return;
+    isListening = true;
+    recognition.start();
+    document.getElementById('micBtn').classList.add('listening');
+    document.getElementById('micBtn').textContent = '⏹️';
+    setStatus('Listening...', true);
+  }
+
+  function stopListening() {
+    if (!recognition) return;
+    isListening = false;
+    recognition.stop();
+    document.getElementById('micBtn').classList.remove('listening');
+    document.getElementById('micBtn').textContent = '🎙️';
+    setStatus('Click mic to start listening', false);
+  }
+
+  function setStatus(msg, active) {
+    const el = document.getElementById('statusText');
+    el.textContent = msg;
+    el.className = 'status-text' + (active ? ' active' : '');
+  }
+
+  document.getElementById('micBtn').addEventListener('click', () => {
+    isListening ? stopListening() : startListening();
+  });
+
+  // ─── WORD PROCESSING ───
+  function processWords(text) {
+    const words = text.toLowerCase().match(/\b[a-z']+\b/g) || [];
+    words.forEach(w => {
+      const clean = w.replace(/^'+|'+$/g, '');
+      if (clean.length < 2) return;
+      if (STOP_WORDS.has(clean)) return;
+      wordCounts[clean] = (wordCounts[clean] || 0) + 1;
+    });
+    updateUI();
+  }
+
+  // ─── MANUAL INPUT ───
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const val = document.getElementById('manualInput').value.trim();
+    if (!val) return;
+    processWords(val);
+    const box = document.getElementById('transcriptBox');
+    box.textContent = val;
+    box.classList.add('has-text');
+    document.getElementById('manualInput').value = '';
+  });
+
+  document.getElementById('manualInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('addBtn').click();
+  });
+
+  // ─── UI RENDER ───
+  function updateUI() {
+    const entries = Object.entries(wordCounts);
+    const totalWords = Object.values(wordCounts).reduce((a,b) => a+b, 0);
+    const uniqueWords = entries.length;
+    const top = entries.sort((a,b) => b[1]-a[1])[0];
+
+    document.getElementById('totalWords').textContent = totalWords;
+    document.getElementById('uniqueWords').textContent = uniqueWords;
+    document.getElementById('topWord').textContent = top ? top[0] : '—';
+
+    let sorted = [...entries];
+    if (sortMode === 'freq') sorted.sort((a,b) => b[1]-a[1]);
+    else sorted.sort((a,b) => a[0].localeCompare(b[0]));
+
+    const maxCount = sorted.length ? sorted.reduce((m,e) => Math.max(m, e[1]), 0) : 1;
+    const grid = document.getElementById('wordGrid');
+
+    if (sorted.length === 0) {
+      grid.innerHTML = `<div class="empty-state"><div class="emoji">🗣️</div><p>Start speaking or type something to track your words</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = sorted.map(([word, count], i) => {
+      const pct = Math.round((count / maxCount) * 100);
+      const isHigh = count >= 3;
+      return `
+        <div class="word-item">
+          <span class="word-rank">${i+1}</span>
+          <span class="word-text">${word}</span>
+          <div class="word-bar-wrap">
+            <div class="word-bar" style="width:${pct}%"></div>
+          </div>
+          <span class="word-count">${count}</span>
+          ${isHigh ? `<span class="word-badge">overused</span>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ─── SORT ───
+  document.getElementById('sortFreq').addEventListener('click', () => {
+    sortMode = 'freq';
+    document.getElementById('sortFreq').classList.add('active');
+    document.getElementById('sortAZ').classList.remove('active');
+    updateUI();
+  });
+
+  document.getElementById('sortAZ').addEventListener('click', () => {
+    sortMode = 'az';
+    document.getElementById('sortAZ').classList.add('active');
+    document.getElementById('sortFreq').classList.remove('active');
+    updateUI();
+  });
+
+  // ─── CLEAR ───
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (!Object.keys(wordCounts).length) return;
+    wordCounts = {};
+    document.getElementById('transcriptBox').textContent = 'Your speech will appear here...';
+    document.getElementById('transcriptBox').classList.remove('has-text');
+    updateUI();
+  });
+
+  // ─── EXPORT ───
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const entries = Object.entries(wordCounts).sort((a,b) => b[1]-a[1]);
+    if (!entries.length) return alert('No words to export yet!');
+    const csv = 'Word,Count\n' + entries.map(([w,c]) => `${w},${c}`).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = 'wordwatch-export.csv';
+    a.click();
+  });
+</script>
+</body>
+</html>
